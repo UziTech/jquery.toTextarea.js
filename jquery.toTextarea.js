@@ -70,6 +70,7 @@
 					$(this).css({
 						border: "1px solid #aaa",
 						"white-space": "pre-wrap",
+						"word-wrap": "break-word",
 						padding: "1px"
 					}).prop({
 						contentEditable: true
