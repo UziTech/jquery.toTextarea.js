@@ -15,6 +15,7 @@
 		return null;
 	};
 	var newLineOnEnter = function (e) {
+		//modified from http://stackoverflow.com/a/20398132/806777
 		if (e.which === 13) {
 			e.preventDefault();
 
@@ -52,6 +53,47 @@
 		}
 	};
 
+	var addImgOnDrop = function (e) {
+		//TODO: make image resizable?
+		var $this = $(this);
+		e.preventDefault();
+		for (var i = 0, length = e.originalEvent.dataTransfer.files.length; i < length; i++) {
+			var file = e.originalEvent.dataTransfer.files[i];
+			var reader = new FileReader();
+
+			reader.onload = function (event) {
+				var image = new Image();
+				image.onload = function () {
+					if ($this.is(":focus")) {
+						//make the <img/> replace selection
+						var sel = window.getSelection();
+						var range = sel.getRangeAt(0);
+						range.deleteContents();
+						//check if it needs an extra new line
+						range.insertNode(this);
+
+						//create a new range
+						range = document.createRange();
+						range.setStartAfter(this);
+						range.collapse(true);
+
+						//make the cursor there
+						sel.removeAllRanges();
+						sel.addRange(range);
+					} else {
+						$this.append(this);
+					}
+				};
+				image.onerror = function () {
+					alert("Not an image");
+				};
+				image.src = event.target.result;
+			};
+			reader.readAsDataURL(file);
+		}
+		return false;
+	};
+
 	$.fn.toTextarea = function (disable) {
 		if (disable) {
 			return this.css({
@@ -60,7 +102,7 @@
 				padding: ""
 			}).prop({
 				contentEditable: false
-			}).off("keypress.toTextarea").data({
+			}).off("keypress.toTextarea drop.toTextarea dragover.toTextarea").data({
 				isTextarea: false
 			});
 		} else {
@@ -74,7 +116,12 @@
 						padding: "1px"
 					}).prop({
 						contentEditable: true
-					}).on("keypress.toTextarea", newLineOnEnter).data({
+					}).on("keypress.toTextarea", newLineOnEnter)
+							.on("drop.toTextarea", addImgOnDrop)
+							.on("dragover.toTextarea", function (e) {
+								e.preventDefault();
+								return false;
+							}).data({
 						isTextarea: true
 					});
 				}
