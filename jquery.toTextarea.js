@@ -94,36 +94,63 @@
 		return false;
 	};
 
-	$.fn.toTextarea = function (disable) {
-		if (disable) {
+	var settings = {
+		allowHTML: true,
+		allowImg: true
+	};
+
+	$.fn.toTextarea = function (options) {
+		if (options === "destroy" || options === true) {
 			return this.css({
 				border: "",
 				"white-space": "",
 				padding: ""
 			}).prop({
 				contentEditable: false
-			}).off("keypress.toTextarea drop.toTextarea dragover.toTextarea").data({
+			}).off(".toTextarea").data({
 				isTextarea: false
 			});
 		} else {
+			if (typeof options === "object") {
+				$.extend(settings, options);
+			}
 			return this.each(function () {
-				var isTextarea = $(this).data().isTextarea || false;
+				var $this = $(this);
+				var isTextarea = $this.data().isTextarea || false;
 				if (!isTextarea) {
-					$(this).css({
-						border: "1px solid #aaa",
-						"white-space": "pre-wrap",
-						"word-wrap": "break-word",
-						padding: "1px"
-					}).prop({
-						contentEditable: true
-					}).on("keypress.toTextarea", newLineOnEnter)
-							.on("drop.toTextarea", addImgOnDrop)
-							.on("dragover.toTextarea", function (e) {
-								e.preventDefault();
-								return false;
-							}).data({
-						isTextarea: true
-					});
+					$this
+							.css({
+								border: "1px solid #aaa",
+								"white-space": "pre-wrap",
+								"word-wrap": "break-word",
+								padding: "1px"
+							})
+							.prop({
+								contentEditable: true
+							})
+							.on("keypress.toTextarea", newLineOnEnter)
+							.data({
+								isTextarea: true
+							});
+					if (settings.allowImg) {
+						$this
+								.on("drop.toTextarea", addImgOnDrop)
+								.on("dragover.toTextarea", function (e) {
+									e.preventDefault();
+									return false;
+								});
+					}
+					if (!settings.allowHTML) {
+						$this
+								.on("keydown.toTextarea", function (e) {
+									if (e.ctrlKey) {
+										if (e.which === 66 || e.which === 73) {
+											e.preventDefault();
+											return false;
+										}
+									}
+								});
+					}
 				}
 			});
 		}
