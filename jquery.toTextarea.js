@@ -55,43 +55,45 @@
 
 	var addImgOnDrop = function (e) {
 		//TODO: make image resizable?
-		var $this = $(this);
-		e.preventDefault();
-		for (var i = 0, length = e.originalEvent.dataTransfer.files.length; i < length; i++) {
-			var file = e.originalEvent.dataTransfer.files[i];
-			var reader = new FileReader();
+		if (e.originalEvent.dataTransfer.files.length > 0) {
+			var $this = $(this);
+			e.preventDefault();
+			for (var i = 0, length = e.originalEvent.dataTransfer.files.length; i < length; i++) {
+				var file = e.originalEvent.dataTransfer.files[i];
+				var reader = new FileReader();
 
-			reader.onload = function (event) {
-				var image = new Image();
-				image.onload = function () {
-					if ($this.is(":focus")) {
-						//make the <img/> replace selection
-						var sel = window.getSelection();
-						var range = sel.getRangeAt(0);
-						range.deleteContents();
-						//check if it needs an extra new line
-						range.insertNode(this);
+				reader.onload = function (event) {
+					var image = new Image();
+					image.onload = function () {
+						if ($this.is(":focus")) {
+							//make the <img/> replace selection
+							var sel = window.getSelection();
+							var range = sel.getRangeAt(0);
+							range.deleteContents();
+							//check if it needs an extra new line
+							range.insertNode(this);
 
-						//create a new range
-						range = document.createRange();
-						range.setStartAfter(this);
-						range.collapse(true);
+							//create a new range
+							range = document.createRange();
+							range.setStartAfter(this);
+							range.collapse(true);
 
-						//make the cursor there
-						sel.removeAllRanges();
-						sel.addRange(range);
-					} else {
-						$this.append(this);
-					}
+							//make the cursor there
+							sel.removeAllRanges();
+							sel.addRange(range);
+						} else {
+							$this.append(this);
+						}
+					};
+					image.onerror = function () {
+						alert("Not an image");
+					};
+					image.src = event.target.result;
 				};
-				image.onerror = function () {
-					alert("Not an image");
-				};
-				image.src = event.target.result;
-			};
-			reader.readAsDataURL(file);
+				reader.readAsDataURL(file);
+			}
+			return false;
 		}
-		return false;
 	};
 
 	var settings = {
@@ -128,16 +130,18 @@
 							.prop({
 								contentEditable: true
 							})
-							.on("keypress.toTextarea", newLineOnEnter)
 							.data({
 								isTextarea: true
-							});
+							})
+							.on("keypress.toTextarea", newLineOnEnter);
 					if (settings.allowImg) {
 						$this
 								.on("drop.toTextarea", addImgOnDrop)
 								.on("dragover.toTextarea", function (e) {
-									e.preventDefault();
-									return false;
+									if (e.originalEvent.dataTransfer.files.length > 0) {
+										e.preventDefault();
+										return false;
+									}
 								});
 					}
 					if (!settings.allowHTML) {
