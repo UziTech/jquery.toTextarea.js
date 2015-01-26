@@ -113,13 +113,21 @@
 				isTextarea: false
 			});
 		} else {
-			if (typeof options === "object") {
+			if ($.isPlainObject(options)) {
 				$.extend(settings, options);
 			}
 			return this.each(function () {
 				var $this = $(this);
 				var isTextarea = $this.data().isTextarea || false;
 				if (!isTextarea) {
+					var allowHTML = settings.allowHTML;
+					if (typeof settings.allowHTML === "function") {
+						allowHTML = settings.allowHTML.call(this);
+					}
+					var allowImg = settings.allowImg;
+					if (typeof settings.allowImg === "function") {
+						allowImg = settings.allowImg.call(this);
+					}
 					$this
 							.css({
 								border: "1px solid #aaa",
@@ -134,7 +142,7 @@
 								isTextarea: true
 							})
 							.on("keypress.toTextarea", newLineOnEnter);
-					if (settings.allowImg) {
+					if (allowImg) {
 						$this
 								.on("drop.toTextarea", addImgOnDrop)
 								.on("dragover.toTextarea", function (e) {
@@ -144,7 +152,7 @@
 									}
 								});
 					}
-					if (!settings.allowHTML) {
+					if (!allowHTML) {
 						$this
 								.on("keydown.toTextarea", function (e) {
 									if (e.ctrlKey) {
