@@ -1,4 +1,37 @@
+/*
+ * Author: Tony Brix, http://tonybrix.info
+ * License: MIT
+ */
+
 (function ($) {
+	//modified from http://stackoverflow.com/a/12924488/806777
+	var getRangeFromPoint = function (x, y) {
+		var range = null;
+
+		// First try ie way
+		if (typeof document.body.createTextRange !== "undefined") {
+			range = document.body.createTextRange();
+			range.moveToPoint(x, y);
+			range.select();
+			range = window.getSelection().getRangeAt(0);
+		} else if (typeof document.createRange !== "undefined") {
+			// Try the standards-based way next
+			if (document.caretPositionFromPoint) {
+				var pos = document.caretPositionFromPoint(x, y);
+				range = document.createRange();
+				range.setStart(pos.offsetNode, pos.offset);
+				range.collapse(true);
+			}
+
+			// Next, the WebKit way
+			else if (document.caretRangeFromPoint) {
+				range = document.caretRangeFromPoint(x, y);
+			}
+		}
+
+		return range;
+	};
+
 	var getLastNode = function (childNodes) {
 		for (var i = childNodes.length - 1; i >= 0; i--) {
 			if (childNodes[i].childNodes.length > 0) {
@@ -54,9 +87,11 @@
 	};
 
 	var addImgOnDrop = function (e) {
-		//TODO: make image resizable?
+		//PENDING: make image resizable?
 		if (e.originalEvent.dataTransfer.files.length > 0) {
 			var $this = $(this);
+			var caretX = e.originalEvent.clientX;
+			var caretY = e.originalEvent.clientY;
 			e.preventDefault();
 			for (var i = 0, length = e.originalEvent.dataTransfer.files.length; i < length; i++) {
 				var file = e.originalEvent.dataTransfer.files[i];
@@ -65,20 +100,25 @@
 				reader.onload = function (event) {
 					var image = new Image();
 					image.onload = function () {
-						if ($this.is(":focus")) {
-							//make the <img/> replace selection
-							var sel = window.getSelection();
-							var range = sel.getRangeAt(0);
-							range.deleteContents();
-							//check if it needs an extra new line
+						//copy img to mouse position
+						var sel = window.getSelection();
+						var range = getRangeFromPoint(caretX, caretY);
+						if (range !== null) {
 							range.insertNode(this);
 
-							//create a new range
-							range = document.createRange();
-							range.setStartAfter(this);
-							range.collapse(true);
+							//set cursor after <img/>
+							range.collapse(false);
+							sel.removeAllRanges();
+							sel.addRange(range);
+						} else if ($this.is(":focus")) {
 
-							//make the cursor there
+							//add <img/> after selection
+							range = sel.getRangeAt(0);
+							range.collapse(false);
+							range.insertNode(this);
+
+							//set cursor after <img/>
+							range.collapse(false);
 							sel.removeAllRanges();
 							sel.addRange(range);
 						} else {
@@ -86,6 +126,7 @@
 						}
 					};
 					image.onerror = function () {
+						//PENDING: more verbose error message?
 						alert("Not an image");
 					};
 					image.src = event.target.result;
@@ -146,7 +187,7 @@
 						$this
 								.on("drop.toTextarea", addImgOnDrop)
 								.on("dragover.toTextarea", function (e) {
-									if (e.originalEvent.dataTransfer.files.length > 0) {
+									if (e.originalEvent.dataTransfer.types.length > 0 && e.originalEvent.dataTransfer.types[0] === "Files") {
 										e.preventDefault();
 										return false;
 									}
