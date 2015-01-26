@@ -1,7 +1,9 @@
 jquery.toTextarea.js
 ====================
 
-Changes a div to act like a textarea to allow auto resizing and editing options
+Makes a div act like a textarea to allow auto resizing and formatting options.
+
+Also allows drag and drop images from desktop.
 
 Demo
 ====
