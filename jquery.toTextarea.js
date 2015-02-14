@@ -86,6 +86,30 @@
 		}
 	};
 
+	var pastePlainText = function (e) {
+		e.preventDefault();
+
+		var text = e.originalEvent.clipboardData.getData("Text");
+		var sel = window.getSelection();
+
+		//make the text replace selection
+		var textNode = document.createTextNode(text);
+		var range = sel.getRangeAt(0);
+		range.deleteContents();
+		range.insertNode(textNode);
+
+		//create a new range
+		range = document.createRange();
+		range.setStartAfter(textNode);
+		range.collapse(true);
+
+		//make the cursor there
+		sel.removeAllRanges();
+		sel.addRange(range);
+
+		return false;
+	};
+
 	var addImgOnDrop = function (e) {
 		//PENDING: make image resizable?
 		if (e.originalEvent.dataTransfer.files.length > 0) {
@@ -202,7 +226,8 @@
 											return false;
 										}
 									}
-								});
+								})
+								.on("paste.toTextarea", pastePlainText);
 					}
 				}
 			});
