@@ -87,9 +87,14 @@
 	};
 
 	var pastePlainText = function (e) {
-		e.preventDefault();
-
-		var text = e.originalEvent.clipboardData.getData("Text");
+		var text = null;
+		if(window.clipboardData){
+			text = window.clipboardData.getData("Text");
+		} else if(e.originalEvent.clipboardData){
+			text = e.originalEvent.clipboardData.getData("text/plain");
+		} else {
+			return true;
+		}
 		var sel = window.getSelection();
 
 		//make the text replace selection
@@ -107,6 +112,7 @@
 		sel.removeAllRanges();
 		sel.addRange(range);
 
+		e.preventDefault();
 		return false;
 	};
 
