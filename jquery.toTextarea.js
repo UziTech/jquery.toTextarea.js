@@ -47,13 +47,6 @@
 		}
 		return null;
 	};
-	var newLineOnEnter = function (e) {
-		if (e.which === 13) {
-			insertTextAtCursor("\n");
-			e.preventDefault();
-			return false;
-		}
-	};
 
 	//modified from http://stackoverflow.com/a/20398132/806777
 	var insertTextAtCursor = function (text1) {
@@ -185,7 +178,13 @@
 							.data({
 								isTextarea: true
 							})
-							.on("keypress.toTextarea", newLineOnEnter);
+							.on("keypress.toTextarea", function (e) {
+								if (e.which === 13) {
+									insertTextAtCursor.call(this, "\n");
+									e.preventDefault();
+									return false;
+								}
+							});
 					if (allowImg) {
 						$this
 								.on("drop.toTextarea", addImgOnDrop)
@@ -215,7 +214,7 @@
 									} else {
 										return true;
 									}
-									insertTextAtCursor(text);
+									insertTextAtCursor.call(this, text);
 									e.preventDefault();
 									return false;
 								});
