@@ -55,8 +55,20 @@
 		}
 	};
 
+<<<<<<< HEAD
 	//modified from http://stackoverflow.com/a/20398132/806777
 	var insertTextAtCursor = function (text1) {
+=======
+	var pastePlainText = function (e) {
+		var text = null;
+		if(window.clipboardData){
+			text = window.clipboardData.getData("Text");
+		} else if(e.originalEvent.clipboardData){
+			text = e.originalEvent.clipboardData.getData("text/plain");
+		} else {
+			return true;
+		}
+>>>>>>> origin/master
 		var sel = window.getSelection();
 
 		//fix a bug that won't create a new line if there isn't a new line at the end of the text
@@ -87,6 +99,12 @@
 		//make the cursor there
 		sel.removeAllRanges();
 		sel.addRange(range);
+<<<<<<< HEAD
+=======
+
+		e.preventDefault();
+		return false;
+>>>>>>> origin/master
 	};
 
 	var addImgOnDrop = function (e) {
