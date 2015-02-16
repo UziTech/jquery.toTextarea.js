@@ -55,6 +55,7 @@
 		//fix a bug that won't create a new line if there isn't a new line at the end of the text
 		var textLastChar = text1.substring(text1.length - 1);
 		var text = $(this).text();
+		var newLineNode = document.createTextNode("\n");
 		var lastChar = null, lastNode = null;
 		if (text !== "") {
 			lastChar = text.substring(text.length - 1);
@@ -66,11 +67,11 @@
 		var textNode = document.createTextNode(text1);
 		var range = sel.getRangeAt(0);
 		range.deleteContents();
-		range.insertNode(textNode);
 		//check if it needs an extra new line
 		if (needsExtra) {
-			range.insertNode(document.createTextNode("\n"));
+			range.insertNode(newLineNode);
 		}
+		range.insertNode(textNode);
 
 		//create a new range
 		range = document.createRange();
