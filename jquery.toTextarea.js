@@ -135,7 +135,8 @@
 
 	var settings = {
 		allowHTML: true,
-		allowImg: true
+		allowImg: true,
+		pastePlainText: true
 	};
 
 	$.fn.toTextarea = function (options) {
@@ -164,6 +165,10 @@
 					var allowImg = settings.allowImg;
 					if (typeof settings.allowImg === "function") {
 						allowImg = settings.allowImg.call(this);
+					}
+					var pastePlainText = settings.pastePlainText;
+					if (typeof settings.pastePlainText === "function") {
+						pastePlainText = settings.pastePlainText.call(this);
 					}
 					$this
 							.css({
@@ -196,28 +201,29 @@
 								});
 					}
 					if (!allowHTML) {
-						$this
-								.on("keydown.toTextarea", function (e) {
-									if (e.ctrlKey) {
-										if (e.which in {66: 1, 73: 1}) {
-											e.preventDefault();
-											return false;
-										}
-									}
-								})
-								.on("paste.toTextarea", function (e) {
-									var text = null;
-									if (window.clipboardData) {
-										text = window.clipboardData.getData("Text");
-									} else if (e.originalEvent.clipboardData) {
-										text = e.originalEvent.clipboardData.getData("text/plain");
-									} else {
-										return true;
-									}
-									insertTextAtCursor.call(this, text);
+						$this.on("keydown.toTextarea", function (e) {
+							if (e.ctrlKey) {
+								if (e.which in {66: 1, 73: 1}) {
 									e.preventDefault();
 									return false;
-								});
+								}
+							}
+						});
+					}
+					if (!allowHTML || pastePlainText) {
+						$this.on("paste.toTextarea", function (e) {
+							var text = null;
+							if (window.clipboardData) {
+								text = window.clipboardData.getData("Text");
+							} else if (e.originalEvent.clipboardData) {
+								text = e.originalEvent.clipboardData.getData("text/plain");
+							} else {
+								return true;
+							}
+							insertTextAtCursor.call(this, text);
+							e.preventDefault();
+							return false;
+						});
 					}
 				}
 			});
