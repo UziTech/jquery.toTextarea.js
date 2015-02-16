@@ -190,6 +190,20 @@
 									e.preventDefault();
 									return false;
 								}
+							})
+							//modified from http://stackoverflow.com/a/12244703/806777
+							.on("select.toTextarea", function (e) {
+								if (document.body.createTextRange) {
+									var range = document.body.createTextRange();
+									range.moveToElementText(this);
+									range.select();
+								} else if (window.getSelection) {
+									var selection = window.getSelection();
+									var range = document.createRange();
+									range.selectNodeContents(this);
+									selection.removeAllRanges();
+									selection.addRange(range);
+								}
 							});
 					if (allowImg) {
 						$this
