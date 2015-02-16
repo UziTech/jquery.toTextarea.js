@@ -48,55 +48,36 @@
 		return null;
 	};
 	var newLineOnEnter = function (e) {
-		//modified from http://stackoverflow.com/a/20398132/806777
 		if (e.which === 13) {
+			insertTextAtCursor("\n");
 			e.preventDefault();
-
-			var sel = window.getSelection();
-
-			//fix a bug that won't create a new line if there isn't a new line at the end of the text
-			var text = $(this).text();
-			var lastChar = null, lastNode = null;
-			if (text !== "") {
-				lastChar = text.substring(text.length - 1);
-				lastNode = getLastNode(this.childNodes);
-			}
-			var needsExtra = (lastChar !== "\n" && (lastChar === null || (sel.anchorNode === lastNode && sel.anchorOffset === lastNode.length) || (sel.focusNode === lastNode && sel.focusOffset === lastNode.length)));
-
-			//make the \n replace selection
-			var newLine = document.createTextNode("\n");
-			var range = sel.getRangeAt(0);
-			range.deleteContents();
-			//check if it needs an extra new line
-			if (needsExtra) {
-				range.insertNode(document.createTextNode("\n"));
-			}
-			range.insertNode(newLine);
-
-			//create a new range
-			range = document.createRange();
-			range.setStartAfter(newLine);
-			range.collapse(true);
-
-			//make the cursor there
-			sel.removeAllRanges();
-			sel.addRange(range);
-
 			return false;
 		}
 	};
 
-	var pastePlainText = function (e) {
-		e.preventDefault();
-
-		var text = e.originalEvent.clipboardData.getData("Text");
+	//modified from http://stackoverflow.com/a/20398132/806777
+	var insertTextAtCursor = function (text1) {
 		var sel = window.getSelection();
 
+		//fix a bug that won't create a new line if there isn't a new line at the end of the text
+		var textLastChar = text1.substring(text1.length - 1);
+		var text = $(this).text();
+		var lastChar = null, lastNode = null;
+		if (text !== "") {
+			lastChar = text.substring(text.length - 1);
+			lastNode = getLastNode(this.childNodes);
+		}
+		var needsExtra = (textLastChar === "\n" && lastChar !== "\n" && (lastChar === null || (sel.anchorNode === lastNode && sel.anchorOffset === lastNode.length) || (sel.focusNode === lastNode && sel.focusOffset === lastNode.length)));
+
 		//make the text replace selection
-		var textNode = document.createTextNode(text);
+		var textNode = document.createTextNode(text1);
 		var range = sel.getRangeAt(0);
 		range.deleteContents();
 		range.insertNode(textNode);
+		//check if it needs an extra new line
+		if (needsExtra) {
+			range.insertNode(document.createTextNode("\n"));
+		}
 
 		//create a new range
 		range = document.createRange();
@@ -106,8 +87,6 @@
 		//make the cursor there
 		sel.removeAllRanges();
 		sel.addRange(range);
-
-		return false;
 	};
 
 	var addImgOnDrop = function (e) {
@@ -221,13 +200,25 @@
 						$this
 								.on("keydown.toTextarea", function (e) {
 									if (e.ctrlKey) {
-										if (e.which === 66 || e.which === 73) {
+										if (e.which in {66: 1, 73: 1}) {
 											e.preventDefault();
 											return false;
 										}
 									}
 								})
-								.on("paste.toTextarea", pastePlainText);
+								.on("paste.toTextarea", function (e) {
+									var text = null;
+									if (window.clipboardData) {
+										text = window.clipboardData.getData("Text");
+									} else if (e.originalEvent.clipboardData) {
+										text = e.originalEvent.clipboardData.getData("text/plain");
+									} else {
+										return true;
+									}
+									insertTextAtCursor(text);
+									e.preventDefault();
+									return false;
+								});
 					}
 				}
 			});
