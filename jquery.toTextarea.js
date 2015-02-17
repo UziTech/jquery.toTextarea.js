@@ -83,54 +83,60 @@
 		sel.addRange(range);
 	};
 
-	var addImgOnDrop = function (e) {
+	var addImgOnDrop = function (file, caretX, caretY) {
 		//PENDING: make image resizable?
-		if (e.originalEvent.dataTransfer.files.length > 0) {
-			var $this = $(this);
-			var caretX = e.originalEvent.clientX;
-			var caretY = e.originalEvent.clientY;
-			e.preventDefault();
-			for (var i = 0, length = e.originalEvent.dataTransfer.files.length; i < length; i++) {
-				var file = e.originalEvent.dataTransfer.files[i];
-				var reader = new FileReader();
+		var $this = $(this);
+		var reader = new FileReader();
 
-				reader.onload = function (event) {
-					var image = new Image();
-					image.onload = function () {
-						//copy img to mouse position
-						var sel = window.getSelection();
-						var range = getRangeFromPoint(caretX, caretY);
-						if (range !== null) {
-							range.insertNode(this);
+		reader.onload = function (event) {
+			var image = new Image();
+			image.onload = function () {
+				//copy img to mouse position
+				var sel = window.getSelection();
+				var range = getRangeFromPoint(caretX, caretY);
+				if (range !== null) {
+					range.insertNode(this);
 
-							//set cursor after <img/>
-							range.collapse(false);
-							sel.removeAllRanges();
-							sel.addRange(range);
-						} else if ($this.is(":focus")) {
+					//set cursor after <img/>
+					range.collapse(false);
+					sel.removeAllRanges();
+					sel.addRange(range);
+				} else if ($this.is(":focus")) {
 
-							//add <img/> after selection
-							range = sel.getRangeAt(0);
-							range.collapse(false);
-							range.insertNode(this);
+					//add <img/> after selection
+					range = sel.getRangeAt(0);
+					range.collapse(false);
+					range.insertNode(this);
 
-							//set cursor after <img/>
-							range.collapse(false);
-							sel.removeAllRanges();
-							sel.addRange(range);
-						} else {
-							$this.append(this);
-						}
-					};
-					image.onerror = function () {
-						//PENDING: more verbose error message?
-						alert("Not an image");
-					};
-					image.src = event.target.result;
-				};
-				reader.readAsDataURL(file);
-			}
-			return false;
+					//set cursor after <img/>
+					range.collapse(false);
+					sel.removeAllRanges();
+					sel.addRange(range);
+				} else {
+					$this.append(this);
+				}
+			};
+			image.onerror = function () {
+				//PENDING: more verbose error message?
+				alert("Not an image");
+			};
+			image.src = event.target.result;
+		};
+		reader.readAsDataURL(file);
+	};
+
+	//modified from http://stackoverflow.com/a/12244703/806777
+	var selectAllText = function () {
+		if (document.body.createTextRange) {
+			var range = document.body.createTextRange();
+			range.moveToElementText(this);
+			range.select();
+		} else if (window.getSelection) {
+			var selection = window.getSelection();
+			var range = document.createRange();
+			range.selectNodeContents(this);
+			selection.removeAllRanges();
+			selection.addRange(range);
 		}
 	};
 
@@ -150,6 +156,22 @@
 				contentEditable: false
 			}).off(".toTextarea").data({
 				isTextarea: false
+			});
+		} else if (options === "disable") {
+			return this.css({
+				"background-color": "#eee"
+			}).prop({
+				contentEditable: false
+			}).data({
+				disabled: true
+			});
+		} else if (options === "enable") {
+			return this.css({
+				"background-color": ""
+			}).prop({
+				contentEditable: true
+			}).data({
+				disabled: false
 			});
 		} else {
 			if ($.isPlainObject(options)) {
@@ -182,34 +204,34 @@
 								contentEditable: true
 							})
 							.data({
-								isTextarea: true
+								isTextarea: true,
+								disabled: false
 							})
 							.on("keypress.toTextarea", function (e) {
-								if (e.which === 13) {
+								if (!$(this).data().disabled && e.which === 13) {
 									insertTextAtCursor.call(this, "\n");
 									e.preventDefault();
 									return false;
 								}
 							})
-							//modified from http://stackoverflow.com/a/12244703/806777
-							.on("select.toTextarea", function (e) {
-								if (document.body.createTextRange) {
-									var range = document.body.createTextRange();
-									range.moveToElementText(this);
-									range.select();
-								} else if (window.getSelection) {
-									var selection = window.getSelection();
-									var range = document.createRange();
-									range.selectNodeContents(this);
-									selection.removeAllRanges();
-									selection.addRange(range);
+							.on("select.toTextarea", function () {
+								if (!$(this).data().disabled) {
+									selectAllText.call(this);
 								}
 							});
 					if (allowImg) {
 						$this
-								.on("drop.toTextarea", addImgOnDrop)
+								.on("drop.toTextarea", function (e) {
+									if (!$(this).data().disabled && e.originalEvent.dataTransfer.files.length > 0) {
+										for (var i = 0, length = e.originalEvent.dataTransfer.files.length; i < length; i++) {
+											addImgOnDrop.call(this, e.originalEvent.dataTransfer.files[i], e.originalEvent.clientX, e.originalEvent.clientY);
+										}
+										e.preventDefault();
+										return false;
+									}
+								})
 								.on("dragover.toTextarea", function (e) {
-									if (e.originalEvent.dataTransfer.types.length > 0 && e.originalEvent.dataTransfer.types[0] === "Files") {
+									if (!$(this).data().disabled && e.originalEvent.dataTransfer.types.length > 0 && e.originalEvent.dataTransfer.types[0] === "Files") {
 										e.preventDefault();
 										return false;
 									}
@@ -217,7 +239,7 @@
 					}
 					if (!allowHTML) {
 						$this.on("keydown.toTextarea", function (e) {
-							if (e.ctrlKey) {
+							if (!$(this).data().disabled && e.ctrlKey) {
 								if (e.which in {66: 1, 73: 1}) {
 									e.preventDefault();
 									return false;
@@ -227,17 +249,19 @@
 					}
 					if (!allowHTML || pastePlainText) {
 						$this.on("paste.toTextarea", function (e) {
-							var text = null;
-							if (window.clipboardData) {
-								text = window.clipboardData.getData("Text");
-							} else if (e.originalEvent.clipboardData) {
-								text = e.originalEvent.clipboardData.getData("text/plain");
-							} else {
-								return true;
+							if (!$(this).data().disabled) {
+								var text = null;
+								if (window.clipboardData) {
+									text = window.clipboardData.getData("Text");
+								} else if (e.originalEvent.clipboardData) {
+									text = e.originalEvent.clipboardData.getData("text/plain");
+								} else {
+									return true;
+								}
+								insertTextAtCursor.call(this, text);
+								e.preventDefault();
+								return false;
 							}
-							insertTextAtCursor.call(this, text);
-							e.preventDefault();
-							return false;
 						});
 					}
 				}
