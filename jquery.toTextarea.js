@@ -49,22 +49,22 @@
 	};
 
 	//modified from http://stackoverflow.com/a/20398132/806777
-	var insertTextAtCursor = function (text1) {
+	var insertTextAtCursor = function (text) {
 		var sel = window.getSelection();
 
 		//fix a bug that won't create a new line if there isn't a new line at the end of the text
-		var textLastChar = text1.substring(text1.length - 1);
-		var text = $(this).text();
+		var textLastChar = text.substring(text.length - 1);
+		var fulltext = $(this).text();
 		var newLineNode = document.createTextNode("\n");
 		var lastChar = null, lastNode = null;
-		if (text !== "") {
-			lastChar = text.substring(text.length - 1);
+		if (fulltext !== "") {
+			lastChar = fulltext.substring(fulltext.length - 1);
 			lastNode = getLastNode(this.childNodes);
 		}
 		var needsExtra = (textLastChar === "\n" && lastChar !== "\n" && (lastChar === null || (sel.anchorNode === lastNode && sel.anchorOffset === lastNode.length) || (sel.focusNode === lastNode && sel.focusOffset === lastNode.length)));
 
 		//make the text replace selection
-		var textNode = document.createTextNode(text1);
+		var textNode = document.createTextNode(text);
 		var range = sel.getRangeAt(0);
 		range.deleteContents();
 		//check if it needs an extra new line
@@ -181,7 +181,14 @@
 				var $this = $(this);
 				var isTextarea = $this.data().isTextarea || false;
 				if (!isTextarea) {
-					this.value = $this.text();
+					Object.defineProperty(this, "value", {
+						set: function (value) {
+							this.innerHTML = value;
+						},
+						get: function () {
+							return this.innerHTML;
+						}
+					});
 					var allowHTML = settings.allowHTML;
 					if (typeof settings.allowHTML === "function") {
 						allowHTML = settings.allowHTML.call(this);
@@ -213,14 +220,6 @@
 									insertTextAtCursor.call(this, "\n");
 									e.preventDefault();
 									return false;
-								}
-							})
-							.on("input.toTextarea", function () {
-								if (!$(this).data().disabled) {
-									var value = $(this).text();
-									if (this.value !== value) {
-										this.value = value;
-									}
 								}
 							})
 							.on("select.toTextarea", function () {
