@@ -181,6 +181,7 @@
 				var $this = $(this);
 				var isTextarea = $this.data().isTextarea || false;
 				if (!isTextarea) {
+					this.value = $this.text();
 					var allowHTML = settings.allowHTML;
 					if (typeof settings.allowHTML === "function") {
 						allowHTML = settings.allowHTML.call(this);
@@ -214,6 +215,14 @@
 									return false;
 								}
 							})
+							.on("input.toTextarea", function () {
+								if (!$(this).data().disabled) {
+									var value = $(this).text();
+									if (this.value !== value) {
+										this.value = value;
+									}
+								}
+							})
 							.on("select.toTextarea", function () {
 								if (!$(this).data().disabled) {
 									selectAllText.call(this);
@@ -227,6 +236,7 @@
 											addImgOnDrop.call(this, e.originalEvent.dataTransfer.files[i], e.originalEvent.clientX, e.originalEvent.clientY);
 										}
 										e.preventDefault();
+										$(this).trigger("input");
 										return false;
 									}
 								})
@@ -260,6 +270,7 @@
 								}
 								insertTextAtCursor.call(this, text);
 								e.preventDefault();
+								$(this).trigger("input");
 								return false;
 							}
 						});
