@@ -85,6 +85,7 @@
 
 	var addImgOnDrop = function (file, caretX, caretY) {
 		//PENDING: make image resizable?
+		//PENDING: set cursor: move; on img?
 		var $this = $(this);
 		var reader = new FileReader();
 
@@ -148,18 +149,22 @@
 
 	$.fn.toTextarea = function (options) {
 		if (options === "destroy" || options === true) {
-			return this.css({
-				border: "",
-				"white-space": "",
-				padding: ""
-			}).prop({
-				contentEditable: false
-			}).off(".toTextarea").data({
-				isTextarea: false
+			return this.each(function () {
+				delete this.value;
+				$(this).css({
+					border: "",
+					"white-space": "",
+					padding: ""
+				}).prop({
+					contentEditable: false
+				}).off(".toTextarea").data({
+					isTextarea: false
+				});
 			});
 		} else if (options === "disable") {
 			return this.css({
-				"background-color": "#eee"
+				"background-color": "#eee",
+				color: "#555"
 			}).prop({
 				contentEditable: false
 			}).data({
@@ -167,7 +172,8 @@
 			});
 		} else if (options === "enable") {
 			return this.css({
-				"background-color": ""
+				"background-color": "",
+				color: ""
 			}).prop({
 				contentEditable: true
 			}).data({
@@ -181,6 +187,9 @@
 				var $this = $(this);
 				var isTextarea = $this.data().isTextarea || false;
 				if (!isTextarea) {
+					if (this.hasOwnProperty("value")) {
+						delete this.value;
+					}
 					Object.defineProperty(this, "value", {
 						set: function (value) {
 							this.innerHTML = value;
@@ -217,7 +226,9 @@
 							})
 							.on("keypress.toTextarea", function (e) {
 								if (!$(this).data().disabled && e.which === 13) {
-									insertTextAtCursor.call(this, "\n");
+									var newLine;
+									newLine = "\n";
+									insertTextAtCursor.call(this, newLine);
 									e.preventDefault();
 									return false;
 								}
