@@ -3,18 +3,18 @@
  * License: MIT
  */
 
-(function ($) {
+(function ($, window, document, undefined) {
 	//modified from http://stackoverflow.com/a/12924488/806777
 	var getRangeFromPoint = function (x, y) {
 		var range = null;
 
 		// First try ie way
-		if (typeof document.body.createTextRange !== "undefined") {
+		if (document.body.createTextRange !== undefined) {
 			range = document.body.createTextRange();
 			range.moveToPoint(x, y);
 			range.select();
 			range = window.getSelection().getRangeAt(0);
-		} else if (typeof document.createRange !== "undefined") {
+		} else if (document.createRange !== undefined) {
 			// Try the standards-based way next
 			if (document.caretPositionFromPoint) {
 				var pos = document.caretPositionFromPoint(x, y);
@@ -66,7 +66,7 @@
 		//make the text replace selection
 		var textNode = document.createTextNode(text);
 		var range = null;
-		if (typeof x !== "undefined" && typeof y !== "undefined") {
+		if (x !== undefined && y !== undefined) {
 			range = getRangeFromPoint(x, y);
 		} else {
 			range = sel.getRangeAt(0);
@@ -96,7 +96,7 @@
 		temp.innerHTML = html;
 		var htmlNodes = temp.childNodes;
 		var range = null;
-		if (typeof x !== "undefined" && typeof y !== "undefined") {
+		if (x !== undefined && y !== undefined) {
 			range = getRangeFromPoint(x, y);
 		} else {
 			range = sel.getRangeAt(0);
@@ -227,7 +227,7 @@
 					if (this.hasOwnProperty("value")) {
 						delete this.value;
 					}
-					Object.defineProperty(this, "value", {
+					window.Object.defineProperty(this, "value", {
 						configurable: true,
 						set: function (value) {
 							this.innerHTML = value;
@@ -416,4 +416,4 @@
 			});
 		}
 	};
-})(jQuery);
+})(jQuery, window, document);
