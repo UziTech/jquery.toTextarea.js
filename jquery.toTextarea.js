@@ -49,7 +49,7 @@
 	};
 
 	//modified from http://stackoverflow.com/a/20398132/806777
-	var insertTextAtCursor = function (text) {
+	var insertTextAtCursor = function (text, x, y) {
 		var sel = window.getSelection();
 
 		//fix a bug that won't create a new line if there isn't a new line at the end of the text
@@ -65,7 +65,12 @@
 
 		//make the text replace selection
 		var textNode = document.createTextNode(text);
-		var range = sel.getRangeAt(0);
+		var range = null;
+		if (typeof x !== "undefined" && typeof y !== "undefined") {
+			range = getRangeFromPoint(x, y);
+		} else {
+			range = sel.getRangeAt(0);
+		}
 		range.deleteContents();
 		//check if it needs an extra new line
 		if (needsExtra) {
@@ -76,6 +81,37 @@
 		//create a new range
 		range = document.createRange();
 		range.setStartAfter(textNode);
+		range.collapse(true);
+
+		//make the cursor there
+		sel.removeAllRanges();
+		sel.addRange(range);
+	};
+
+	var insertHTMLAtCursor = function (html, x, y) {
+		var sel = window.getSelection();
+
+		//make the text replace selection
+		var temp = document.createElement("div");
+		temp.innerHTML = html;
+		var htmlNodes = temp.childNodes;
+		var range = null;
+		if (typeof x !== "undefined" && typeof y !== "undefined") {
+			range = getRangeFromPoint(x, y);
+		} else {
+			range = sel.getRangeAt(0);
+		}
+		range.deleteContents();
+		//insert all child nodes
+		var lastNode = null;
+		for (var i = 0; i < htmlNodes.length; i++) {
+			lastNode = htmlNodes[i];
+			range.insertNode(lastNode);
+		}
+
+		//create a new range
+		range = document.createRange();
+		range.setStartAfter(lastNode);
 		range.collapse(true);
 
 		//make the cursor there
@@ -142,8 +178,9 @@
 	};
 
 	var settings = {
-		allowHTML: true,
-		allowImg: true,
+		allowHTML: false,
+		allowImg: false,
+		singleLine: false,
 		pastePlainText: true
 	};
 
@@ -191,6 +228,7 @@
 						delete this.value;
 					}
 					Object.defineProperty(this, "value", {
+						configurable: true,
 						set: function (value) {
 							this.innerHTML = value;
 						},
@@ -206,6 +244,10 @@
 					if (typeof settings.allowImg === "function") {
 						allowImg = settings.allowImg.call(this);
 					}
+					var singleLine = settings.singleLine;
+					if (typeof settings.singleLine === "function") {
+						singleLine = settings.singleLine.call(this);
+					}
 					var pastePlainText = settings.pastePlainText;
 					if (typeof settings.pastePlainText === "function") {
 						pastePlainText = settings.pastePlainText.call(this);
@@ -213,7 +255,7 @@
 					$this
 							.css({
 								border: "1px solid #aaa",
-								"white-space": "pre-wrap",
+								"white-space": (singleLine ? "pre" : "pre-wrap"),
 								"word-wrap": "break-word",
 								padding: "1px"
 							})
@@ -224,20 +266,123 @@
 								isTextarea: true,
 								disabled: false
 							})
-							.on("keypress.toTextarea", function (e) {
-								if (!$(this).data().disabled && e.which === 13) {
-									var newLine;
-									newLine = "\n";
-									insertTextAtCursor.call(this, newLine);
-									e.preventDefault();
-									return false;
-								}
-							})
 							.on("select.toTextarea", function () {
 								if (!$(this).data().disabled) {
 									selectAllText.call(this);
 								}
 							});
+					if (singleLine) {
+						$this
+								.on("keypress.toTextarea", function (e) {
+									if (!$(this).data().disabled && e.which === 13) {
+										e.preventDefault();
+										return false;
+									}
+								});
+						//if (!allowHTML || pastePlainText) {
+						//PENDING: not allowing pasting html for now.
+						$this
+								.on("paste.toTextarea", function (e) {
+									if (!$(this).data().disabled) {
+										var text = null;
+										if (window.clipboardData) {
+											text = window.clipboardData.getData("Text");
+										} else if (e.originalEvent.clipboardData) {
+											text = e.originalEvent.clipboardData.getData("text/plain");
+										} else {
+											return true;
+										}
+										text = text.replace(/[\n]/g, " ");
+										insertTextAtCursor.call(this, text);
+										e.preventDefault();
+										$(this).trigger("input");
+										return false;
+									}
+								})
+								.on("drop.toTextarea", function (e) {
+									if (!$(this).data().disabled) {
+										var text = null;
+										text = e.originalEvent.dataTransfer.getData("text/plain");
+										text = text.replace(/[\n]/g, " ");
+										insertTextAtCursor.call(this, text, e.originalEvent.clientX, e.originalEvent.clientY);
+										e.preventDefault();
+										$(this).trigger("input");
+										return false;
+									}
+								});
+						/*} else {
+						 //PENDING: this is giving me problems, For now if they allow html let it go to multiple lines.
+						 //PENDING: maybe check after paste and remove new lines?
+						 
+						 $this
+						 .on("paste.toTextarea", function (e) {
+						 if (!$(this).data().disabled) {
+						 var text = null;
+						 if (window.clipboardData) {
+						 text = window.clipboardData.getData("Text");
+						 } else if (e.originalEvent.clipboardData) {
+						 text = e.originalEvent.clipboardData.getData("text/html");
+						 } else {
+						 return true;
+						 }
+						 text = text.replace(/[\n]/g, " ");
+						 insertHTMLAtCursor.call(this, text);
+						 e.preventDefault();
+						 $(this).trigger("input");
+						 return false;
+						 }
+						 })
+						 .on("drop.toTextarea", function (e) {
+						 if (!$(this).data().disabled) {
+						 var text = null;
+						 text = e.originalEvent.dataTransfer.getData("text/html");
+						 text = text.replace(/[\n]/g, " ");
+						 insertHTMLAtCursor.call(this, text, e.originalEvent.clientX, e.originalEvent.clientY);
+						 e.preventDefault();
+						 $(this).trigger("input");
+						 return false;
+						 }
+						 });
+						 }*/
+
+					} else {
+						$this.on("keypress.toTextarea", function (e) {
+							if (!$(this).data().disabled && e.which === 13) {
+								insertTextAtCursor.call(this, "\n");
+								e.preventDefault();
+								return false;
+							}
+						});
+						if (!allowHTML || pastePlainText) {
+							$this
+									.on("paste.toTextarea", function (e) {
+										if (!$(this).data().disabled) {
+											var text = null;
+											if (window.clipboardData) {
+												text = window.clipboardData.getData("Text");
+											} else if (e.originalEvent.clipboardData) {
+												text = e.originalEvent.clipboardData.getData("text/plain");
+											} else {
+												return true;
+											}
+											insertTextAtCursor.call(this, text);
+											e.preventDefault();
+											$(this).trigger("input");
+											return false;
+										}
+									})
+									.on("drop.toTextarea", function (e) {
+										if (!$(this).data().disabled) {
+											var text = null;
+											text = e.originalEvent.dataTransfer.getData("text/plain");
+											insertTextAtCursor.call(this, text, e.originalEvent.clientX, e.originalEvent.clientY);
+											e.preventDefault();
+											$(this).trigger("input");
+											return false;
+										}
+									});
+						}
+					}
 					if (allowImg) {
 						$this
 								.on("drop.toTextarea", function (e) {
@@ -264,24 +409,6 @@
 									e.preventDefault();
 									return false;
 								}
-							}
-						});
-					}
-					if (!allowHTML || pastePlainText) {
-						$this.on("paste.toTextarea", function (e) {
-							if (!$(this).data().disabled) {
-								var text = null;
-								if (window.clipboardData) {
-									text = window.clipboardData.getData("Text");
-								} else if (e.originalEvent.clipboardData) {
-									text = e.originalEvent.clipboardData.getData("text/plain");
-								} else {
-									return true;
-								}
-								insertTextAtCursor.call(this, text);
-								e.preventDefault();
-								$(this).trigger("input");
-								return false;
 							}
 						});
 					}
