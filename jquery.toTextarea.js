@@ -224,18 +224,6 @@
 				var $this = $(this);
 				var isTextarea = $this.data().isTextarea || false;
 				if (!isTextarea) {
-					if (this.hasOwnProperty("value")) {
-						delete this.value;
-					}
-					window.Object.defineProperty(this, "value", {
-						configurable: true,
-						set: function (value) {
-							this.innerHTML = value;
-						},
-						get: function () {
-							return this.innerHTML;
-						}
-					});
 					var allowHTML = settings.allowHTML;
 					if (typeof settings.allowHTML === "function") {
 						allowHTML = settings.allowHTML.call(this);
