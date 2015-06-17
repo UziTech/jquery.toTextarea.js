@@ -18,7 +18,7 @@ Usage
 ```
 ```javascript
 $(".textarea").toTextarea({
-  allowHTML: false,//allow HTML formatting with CTRL+b or CTRL + i
+  allowHTML: false,//allow HTML formatting with CTRL+b, CTRL+i, etc.
   allowImg: false,//allow drag and drop images
   singleLine: false,//make a single line so it will only expand horiontally
   pastePlainText: true//paste text without styling as source
