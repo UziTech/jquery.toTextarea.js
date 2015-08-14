@@ -299,6 +299,7 @@
 									}
 								});
 						/*} else {
+						 //allow html but remove new lines
 						 //PENDING: this is giving me problems, For now if they allow html let it go to multiple lines.
 						 //PENDING: maybe check after paste and remove new lines?
 						 
