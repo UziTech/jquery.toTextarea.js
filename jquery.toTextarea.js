@@ -1,8 +1,10 @@
 /*
  * Author: Tony Brix, http://tonybrix.info
  * License: MIT
+ * Version: 0.4.0
  */
 
+;
 (function ($, window, document, undefined) {
 	//modified from http://stackoverflow.com/a/12924488/806777
 	var getRangeFromPoint = function (x, y) {
@@ -121,6 +123,8 @@
 
 	var addImgOnDrop = function (file, caretX, caretY) {
 		//PENDING: make image resizable?
+		//PENDING: set default image dimensions?
+		//PENDING: resize large images to default dimensions using canvas?
 		//PENDING: set cursor: move; on img?
 		var $this = $(this);
 		var reader = new FileReader();
@@ -177,46 +181,72 @@
 		}
 	};
 
-	var settings = {
-		allowHTML: false,
-		allowImg: false,
-		singleLine: false,
-		pastePlainText: true
-	};
-
 	$.fn.toTextarea = function (options) {
 		if (options === "destroy" || options === true) {
 			return this.each(function () {
-				delete this.value;
-				$(this).css({
-					border: "",
-					"white-space": "",
-					padding: ""
-				}).prop({
-					contentEditable: false
-				}).off(".toTextarea").data({
-					isTextarea: false
-				});
+				var $this = $(this);
+				if ($this.data().isTextarea) {
+					if (this.id) {
+						$("label[for='" + this.id + "']").off(".toTextarea");
+					}
+					$this
+							.prop({
+								contentEditable: false
+							})
+							.off(".toTextarea")
+							.data({
+								isTextarea: false
+							})
+							.removeClass("toTextarea-disabled toTextarea");
+					if ($this.hasClass("toTextarea-placeholder")) {
+						$this.removeClass("toTextarea-placeholder").text("");
+					}
+				}
 			});
 		} else if (options === "disable") {
-			return this.css({
-				"background-color": "#eee",
-				color: "#555"
-			}).prop({
-				contentEditable: false
-			}).data({
-				disabled: true
+			return this.each(function () {
+				var $this = $(this);
+				if ($this.data().isTextarea && !$this.data().disabled) {
+					if (this.id) {
+						$("label[for='" + this.id + "']").off(".toTextarea");
+					}
+					$this
+							.prop({
+								contentEditable: false
+							})
+							.data({
+								disabled: true
+							})
+							.addClass("toTextarea-disabled");
+				}
 			});
 		} else if (options === "enable") {
-			return this.css({
-				"background-color": "",
-				color: ""
-			}).prop({
-				contentEditable: true
-			}).data({
-				disabled: false
+			return this.each(function () {
+				var $this = $(this);
+				if ($this.data().isTextarea && $this.data().disabled) {
+					if (this.id) {
+						$("label[for='" + this.id + "']").on("click.toTextarea", function () {
+							$this.focus();
+						});
+					}
+					$this
+							.prop({
+								contentEditable: true
+							})
+							.data({
+								disabled: false
+							})
+							.removeClass("toTextarea-disabled");
+				}
 			});
 		} else {
+			var settings = {
+				allowHTML: false,
+				allowImg: false,
+				singleLine: false,
+				pastePlainText: true,
+				placeholder: false
+			};
 			if ($.isPlainObject(options)) {
 				$.extend(settings, options);
 			}
@@ -224,6 +254,11 @@
 				var $this = $(this);
 				var isTextarea = $this.data().isTextarea || false;
 				if (!isTextarea) {
+					if (this.id) {
+						$("label[for='" + this.id + "']").on("click.toTextarea", function () {
+							$this.focus();
+						});
+					}
 					var allowHTML = settings.allowHTML;
 					if (typeof settings.allowHTML === "function") {
 						allowHTML = settings.allowHTML.call(this);
@@ -240,13 +275,16 @@
 					if (typeof settings.pastePlainText === "function") {
 						pastePlainText = settings.pastePlainText.call(this);
 					}
+					var placeholder = settings.placeholder;
+					if (typeof settings.placeholder === "function") {
+						placeholder = settings.placeholder.call(this);
+					}
+					if(!placeholder){
+						//check attributes
+						placeholder = $this.attr("placeholder") || $this.data().placeholder;
+					}
 					$this
-							.css({
-								border: "1px solid #aaa",
-								"white-space": (singleLine ? "pre" : "pre-wrap"),
-								"word-wrap": "break-word",
-								padding: "1px"
-							})
+							.addClass("toTextarea")
 							.prop({
 								contentEditable: true
 							})
@@ -258,9 +296,33 @@
 								if (!$(this).data().disabled) {
 									selectAllText.call(this);
 								}
+							})
+							.on("keypress.toTextarea keyup.toTextarea", function () {
+								$(this).trigger("input");
 							});
+					if (placeholder) {
+						$this.on("input.toTextarea change.toTextarea", function () {
+							if (!$(this).is(":focus") && $(this).text() === "") {
+								$(this).addClass("toTextarea-placeholder").text(placeholder);
+							} else {
+								$(this).removeClass("toTextarea-placeholder");
+							}
+						}).on("focus.toTextarea", function () {
+							if ($(this).hasClass("toTextarea-placeholder")) {
+								$(this).removeClass("toTextarea-placeholder").text("");
+							}
+						}).on("blur.toTextarea", function () {
+							if ($(this).text() === "") {
+								$(this).addClass("toTextarea-placeholder").text(placeholder);
+							}
+						});
+						if ($this.text() === "") {
+							$this.addClass("toTextarea-placeholder").text(placeholder);
+						}
+					}
 					if (singleLine) {
 						$this
+								.addClass("toTextarea-singleLine")
 								.on("keypress.toTextarea", function (e) {
 									if (!$(this).data().disabled && e.which === 13) {
 										e.preventDefault();
@@ -301,7 +363,7 @@
 						/*} else {
 						 //allow html but remove new lines
 						 //PENDING: this is giving me problems, For now if they allow html let it go to multiple lines.
-						 //PENDING: maybe check after paste and remove new lines?
+						 //PENDING: maybe check after paste and remove new lines? a little jumpy but probably the only way to do it
 						 
 						 $this
 						 .on("paste.toTextarea", function (e) {
@@ -405,4 +467,19 @@
 			});
 		}
 	};
+
+	$(function () {
+		var $style = $("<style class='toTextarea-stylesheet'>" +
+				" .toTextarea { text-align: left; border: 1px solid #aaa; white-space: pre-wrap; word-wrap: break-word; padding: 1px; }" +
+				" .toTextarea-singleLine { white-space: pre; }" +
+				" .toTextarea-disabled { background-color: #eee; color: #555; }" +
+				" .toTextarea-placeholder { color: #555; font-style: italic; }" +
+				"</style>");
+		var $styles = $("head link[rel='stylesheet'], head style");
+		if ($styles.length > 0) {
+			$styles.eq(0).before($style);
+		} else {
+			$("head").append($style);
+		}
+	});
 })(jQuery, window, document);
