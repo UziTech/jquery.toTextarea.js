@@ -20,7 +20,8 @@ Usage
 $(".textarea").toTextarea({
   allowHTML: false,//allow HTML formatting with CTRL+b, CTRL+i, etc.
   allowImg: false,//allow drag and drop images
-  singleLine: false,//make a single line so it will only expand horiontally
-  pastePlainText: true//paste text without styling as source
+  singleLine: false,//make a single line so it will only expand horizontally
+  pastePlainText: true,//paste text without styling as source
+  placeholder: false//a placeholder when no text is entered. This can also be set by a placeholder="..." or data-placeholder="..." attribute
 });
 ```
