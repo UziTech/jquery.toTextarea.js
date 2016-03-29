@@ -190,14 +190,14 @@
 						$("label[for='" + this.id + "']").off(".toTextarea");
 					}
 					$this
-							.prop({
-								contentEditable: false
-							})
-							.off(".toTextarea")
-							.data({
-								isTextarea: false
-							})
-							.removeClass("toTextarea-disabled toTextarea");
+						.prop({
+							contentEditable: false
+						})
+						.off(".toTextarea")
+						.data({
+							isTextarea: false
+						})
+						.removeClass("toTextarea-disabled toTextarea");
 					if ($this.hasClass("toTextarea-placeholder")) {
 						$this.removeClass("toTextarea-placeholder").text("");
 					}
@@ -211,13 +211,13 @@
 						$("label[for='" + this.id + "']").off(".toTextarea");
 					}
 					$this
-							.prop({
-								contentEditable: false
-							})
-							.data({
-								disabled: true
-							})
-							.addClass("toTextarea-disabled");
+						.prop({
+							contentEditable: false
+						})
+						.data({
+							disabled: true
+						})
+						.addClass("toTextarea-disabled");
 				}
 			});
 		} else if (options === "enable") {
@@ -230,13 +230,13 @@
 						});
 					}
 					$this
-							.prop({
-								contentEditable: true
-							})
-							.data({
-								disabled: false
-							})
-							.removeClass("toTextarea-disabled");
+						.prop({
+							contentEditable: true
+						})
+						.data({
+							disabled: false
+						})
+						.removeClass("toTextarea-disabled");
 				}
 			});
 		} else {
@@ -279,27 +279,27 @@
 					if (typeof settings.placeholder === "function") {
 						placeholder = settings.placeholder.call(this);
 					}
-					if(!placeholder){
+					if (!placeholder) {
 						//check attributes
 						placeholder = $this.attr("placeholder") || $this.data().placeholder;
 					}
 					$this
-							.addClass("toTextarea")
-							.prop({
-								contentEditable: true
-							})
-							.data({
-								isTextarea: true,
-								disabled: false
-							})
-							.on("select.toTextarea", function () {
-								if (!$(this).data().disabled) {
-									selectAllText.call(this);
-								}
-							})
-							.on("keypress.toTextarea keyup.toTextarea", function () {
-								$(this).trigger("input");
-							});
+						.addClass("toTextarea")
+						.prop({
+							contentEditable: true
+						})
+						.data({
+							isTextarea: true,
+							disabled: false
+						})
+						.on("select.toTextarea", function () {
+							if (!$(this).data().disabled) {
+								selectAllText.call(this);
+							}
+						})
+						.on("keypress.toTextarea keyup.toTextarea", function () {
+							$(this).trigger("input");
+						});
 					if (placeholder) {
 						$this.on("input.toTextarea change.toTextarea", function () {
 							if (!$(this).is(":focus") && $(this).text() === "") {
@@ -322,49 +322,48 @@
 					}
 					if (singleLine) {
 						$this
-								.addClass("toTextarea-singleLine")
-								.on("keypress.toTextarea", function (e) {
-									if (!$(this).data().disabled && e.which === 13) {
-										e.preventDefault();
-										return false;
-									}
-								});
+							.addClass("toTextarea-singleLine")
+							.on("keypress.toTextarea", function (e) {
+								if (!$(this).data().disabled && e.which === 13) {
+									e.preventDefault();
+									return false;
+								}
+							});
 						//if (!allowHTML || pastePlainText) {
 						//PENDING: not allowing pasting html for now.
 						$this
-								.on("paste.toTextarea", function (e) {
-									if (!$(this).data().disabled) {
-										var text = null;
-										if (window.clipboardData) {
-											text = window.clipboardData.getData("Text");
-										} else if (e.originalEvent.clipboardData) {
-											text = e.originalEvent.clipboardData.getData("text/plain");
-										} else {
-											return true;
-										}
-										text = text.replace(/[\n]/g, " ");
-										insertTextAtCursor.call(this, text);
-										e.preventDefault();
-										$(this).trigger("input");
-										return false;
+							.on("paste.toTextarea", function (e) {
+								if (!$(this).data().disabled) {
+									var text = null;
+									if (window.clipboardData) {
+										text = window.clipboardData.getData("Text");
+									} else if (e.originalEvent.clipboardData) {
+										text = e.originalEvent.clipboardData.getData("text/plain");
+									} else {
+										return true;
 									}
-								})
-								.on("drop.toTextarea", function (e) {
-									if (!$(this).data().disabled) {
-										var text = null;
-										text = e.originalEvent.dataTransfer.getData("text/plain");
-										text = text.replace(/[\n]/g, " ");
-										insertTextAtCursor.call(this, text, e.originalEvent.clientX, e.originalEvent.clientY);
-										e.preventDefault();
-										$(this).trigger("input");
-										return false;
-									}
-								});
+									text = text.replace(/[\n]/g, " ");
+									insertTextAtCursor.call(this, text);
+									e.preventDefault();
+									$(this).trigger("input");
+									return false;
+								}
+							})
+							.on("drop.toTextarea", function (e) {
+								if (!$(this).data().disabled) {
+									var text = null;
+									text = e.originalEvent.dataTransfer.getData("text");
+									text = text.replace(/[\n]/g, " ");
+									insertTextAtCursor.call(this, text, e.originalEvent.clientX, e.originalEvent.clientY);
+									e.preventDefault();
+									$(this).trigger("input");
+									return false;
+								}
+							});
 						/*} else {
-						 //allow html but remove new lines
 						 //PENDING: this is giving me problems, For now if they allow html let it go to multiple lines.
 						 //PENDING: maybe check after paste and remove new lines? a little jumpy but probably the only way to do it
-						 
+
 						 $this
 						 .on("paste.toTextarea", function (e) {
 						 if (!$(this).data().disabled) {
@@ -406,57 +405,57 @@
 						});
 						if (!allowHTML || pastePlainText) {
 							$this
-									.on("paste.toTextarea", function (e) {
-										if (!$(this).data().disabled) {
-											var text = null;
-											if (window.clipboardData) {
-												text = window.clipboardData.getData("Text");
-											} else if (e.originalEvent.clipboardData) {
-												text = e.originalEvent.clipboardData.getData("text/plain");
-											} else {
-												return true;
-											}
-											insertTextAtCursor.call(this, text);
-											e.preventDefault();
-											$(this).trigger("input");
-											return false;
+								.on("paste.toTextarea", function (e) {
+									if (!$(this).data().disabled) {
+										var text = null;
+										if (window.clipboardData) {
+											text = window.clipboardData.getData("Text");
+										} else if (e.originalEvent.clipboardData) {
+											text = e.originalEvent.clipboardData.getData("text/plain");
+										} else {
+											return true;
 										}
-									})
-									.on("drop.toTextarea", function (e) {
-										if (!$(this).data().disabled) {
-											var text = null;
-											text = e.originalEvent.dataTransfer.getData("text/plain");
-											insertTextAtCursor.call(this, text, e.originalEvent.clientX, e.originalEvent.clientY);
-											e.preventDefault();
-											$(this).trigger("input");
-											return false;
-										}
-									});
-						}
-					}
-					if (allowImg) {
-						$this
-								.on("drop.toTextarea", function (e) {
-									if (!$(this).data().disabled && e.originalEvent.dataTransfer.files.length > 0) {
-										for (var i = 0, length = e.originalEvent.dataTransfer.files.length; i < length; i++) {
-											addImgOnDrop.call(this, e.originalEvent.dataTransfer.files[i], e.originalEvent.clientX, e.originalEvent.clientY);
-										}
+										insertTextAtCursor.call(this, text);
 										e.preventDefault();
 										$(this).trigger("input");
 										return false;
 									}
 								})
-								.on("dragover.toTextarea", function (e) {
-									if (!$(this).data().disabled && e.originalEvent.dataTransfer.types.length > 0 && e.originalEvent.dataTransfer.types[0] === "Files") {
+								.on("drop.toTextarea", function (e) {
+									if (!$(this).data().disabled) {
+										var text = null;
+										text = e.originalEvent.dataTransfer.getData("text");
+										insertTextAtCursor.call(this, text, e.originalEvent.clientX, e.originalEvent.clientY);
 										e.preventDefault();
+										$(this).trigger("input");
 										return false;
 									}
 								});
+						}
+					}
+					if (allowImg) {
+						$this
+							.on("drop.toTextarea", function (e) {
+								if (!$(this).data().disabled && e.originalEvent.dataTransfer.files.length > 0) {
+									for (var i = 0, length = e.originalEvent.dataTransfer.files.length; i < length; i++) {
+										addImgOnDrop.call(this, e.originalEvent.dataTransfer.files[i], e.originalEvent.clientX, e.originalEvent.clientY);
+									}
+									e.preventDefault();
+									$(this).trigger("input");
+									return false;
+								}
+							})
+							.on("dragover.toTextarea", function (e) {
+								if (!$(this).data().disabled && e.originalEvent.dataTransfer.types.length > 0 && e.originalEvent.dataTransfer.types[0] === "Files") {
+									e.preventDefault();
+									return false;
+								}
+							});
 					}
 					if (!allowHTML) {
 						$this.on("keydown.toTextarea", function (e) {
 							if (!$(this).data().disabled && e.ctrlKey) {
-								if (e.which in {66: 1, 73: 1}) {
+								if (e.which === 66 || e.which === 73 || e.which === 85) {
 									e.preventDefault();
 									return false;
 								}
@@ -470,11 +469,11 @@
 
 	$(function () {
 		var $style = $("<style class='toTextarea-stylesheet'>" +
-				" .toTextarea { text-align: left; border: 1px solid #aaa; white-space: pre-wrap; word-wrap: break-word; padding: 1px; }" +
-				" .toTextarea-singleLine { white-space: pre; }" +
-				" .toTextarea-disabled { background-color: #eee; color: #555; }" +
-				" .toTextarea-placeholder { color: #555; font-style: italic; }" +
-				"</style>");
+			" .toTextarea { text-align: left; border: 1px solid #aaa; white-space: pre-wrap; word-wrap: break-word; padding: 1px; }" +
+			" .toTextarea-singleLine { white-space: pre; }" +
+			" .toTextarea-disabled { background-color: #eee; color: #555; }" +
+			" .toTextarea-placeholder { color: #555; font-style: italic; }" +
+			"</style>");
 		var $styles = $("head link[rel='stylesheet'], head style");
 		if ($styles.length > 0) {
 			$styles.eq(0).before($style);
