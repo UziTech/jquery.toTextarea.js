@@ -452,7 +452,7 @@
 			" .toTextarea { text-align: left; border: 1px solid #aaa; white-space: pre-wrap; word-wrap: break-word; padding: 1px; }" +
 			" .toTextarea-singleLine { white-space: pre; }" +
 			" .toTextarea-disabled { background-color: #eee; color: #555; }" +
-			" .toTextarea-placeholder:empty:after { color: #555; font-style: italic; content: attr(data-placeholder); }" +
+			" .toTextarea-placeholder:empty:after { color: #555; font-style: italic; cursor: text; content: attr(data-placeholder); }" +
 			"</style>");
 		var $styles = $("head link[rel='stylesheet'], head style");
 		if ($styles.length > 0) {
