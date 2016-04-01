@@ -197,10 +197,7 @@
 						.data({
 							isTextarea: false
 						})
-						.removeClass("toTextarea-disabled toTextarea");
-					if ($this.hasClass("toTextarea-placeholder")) {
-						$this.removeClass("toTextarea-placeholder").text("");
-					}
+						.removeClass("toTextarea-disabled toTextarea-placeholder toTextarea");
 				}
 			});
 		} else if (options === "disable") {
@@ -301,24 +298,7 @@
 							$(this).trigger("input");
 						});
 					if (placeholder) {
-						$this.on("input.toTextarea change.toTextarea", function () {
-							if (!$(this).is(":focus") && $(this).text() === "") {
-								$(this).addClass("toTextarea-placeholder").text(placeholder);
-							} else {
-								$(this).removeClass("toTextarea-placeholder");
-							}
-						}).on("focus.toTextarea", function () {
-							if ($(this).hasClass("toTextarea-placeholder")) {
-								$(this).removeClass("toTextarea-placeholder").text("");
-							}
-						}).on("blur.toTextarea", function () {
-							if ($(this).text() === "") {
-								$(this).addClass("toTextarea-placeholder").text(placeholder);
-							}
-						});
-						if ($this.text() === "") {
-							$this.addClass("toTextarea-placeholder").text(placeholder);
-						}
+						$this.attr({"data-placeholder": placeholder}).addClass("toTextarea-placeholder");
 					}
 					if (singleLine) {
 						$this
@@ -472,7 +452,7 @@
 			" .toTextarea { text-align: left; border: 1px solid #aaa; white-space: pre-wrap; word-wrap: break-word; padding: 1px; }" +
 			" .toTextarea-singleLine { white-space: pre; }" +
 			" .toTextarea-disabled { background-color: #eee; color: #555; }" +
-			" .toTextarea-placeholder { color: #555; font-style: italic; }" +
+			" .toTextarea-placeholder:empty:after { color: #555; font-style: italic; content: attr(data-placeholder); }" +
 			"</style>");
 		var $styles = $("head link[rel='stylesheet'], head style");
 		if ($styles.length > 0) {
