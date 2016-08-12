@@ -6,7 +6,7 @@
 
 ;
 (function ($, window, document, undefined) {
-	//modified from http://stackoverflow.com/a/12924488/806777
+	// modified from http://stackoverflow.com/a/12924488/806777
 	var getRangeFromPoint = function (x, y) {
 		var range = null;
 
@@ -50,22 +50,21 @@
 		return null;
 	};
 
-	//modified from http://stackoverflow.com/a/20398132/806777
+	// modified from http://stackoverflow.com/a/20398132/806777
 	var insertTextAtCursor = function (text, x, y) {
 		var sel = window.getSelection();
 
-		//fix a bug that won't create a new line if there isn't a new line at the end of the text
+		// fix a bug that won't create a new line if there isn't a new line at the end of the text
 		var textLastChar = text.substring(text.length - 1);
 		var fulltext = $(this).text();
 		var newLineNode = document.createTextNode("\n");
-		var lastChar = null, lastNode = null;
 		if (fulltext !== "") {
 			lastChar = fulltext.substring(fulltext.length - 1);
 			lastNode = getLastNode(this.childNodes);
 		}
 		var needsExtra = (textLastChar === "\n" && lastChar !== "\n" && (lastChar === null || (sel.anchorNode === lastNode && sel.anchorOffset === lastNode.length) || (sel.focusNode === lastNode && sel.focusOffset === lastNode.length)));
 
-		//make the text replace selection
+		// make the text replace selection
 		var textNode = document.createTextNode(text);
 		var range = null;
 		if (x !== undefined && y !== undefined) {
@@ -74,26 +73,29 @@
 			range = sel.getRangeAt(0);
 		}
 		range.deleteContents();
-		//check if it needs an extra new line
+		// check if it needs an extra new line
 		if (needsExtra) {
 			range.insertNode(newLineNode);
 		}
 		range.insertNode(textNode);
 
-		//create a new range
+		// create a new range
 		range = document.createRange();
 		range.setStartAfter(textNode);
 		range.collapse(true);
 
-		//make the cursor there
+		// make the cursor there
 		sel.removeAllRanges();
 		sel.addRange(range);
+
+		// combine text nodes
+		this.normalize();
 	};
 
 	var insertHTMLAtCursor = function (html, x, y) {
 		var sel = window.getSelection();
 
-		//make the text replace selection
+		// make the text replace selection
 		var temp = document.createElement("div");
 		temp.innerHTML = html;
 		var htmlNodes = temp.childNodes;
@@ -104,52 +106,56 @@
 			range = sel.getRangeAt(0);
 		}
 		range.deleteContents();
-		//insert all child nodes
+		// insert all child nodes
 		var lastNode = null;
 		for (var i = 0; i < htmlNodes.length; i++) {
 			lastNode = htmlNodes[i];
 			range.insertNode(lastNode);
 		}
 
-		//create a new range
+		// create a new range
 		range = document.createRange();
 		range.setStartAfter(lastNode);
 		range.collapse(true);
 
-		//make the cursor there
+		// make the cursor there
 		sel.removeAllRanges();
 		sel.addRange(range);
+
+		// combine text nodes
+		this
+			.normalize();
 	};
 
 	var addImgOnDrop = function (file, caretX, caretY) {
-		//PENDING: make image resizable?
-		//PENDING: set default image dimensions?
-		//PENDING: resize large images to default dimensions using canvas?
-		//PENDING: set cursor: move; on img?
+		// PENDING: make image resizable?
+		// PENDING: set default image dimensions?
+		// PENDING: resize large images to default dimensions using canvas?
+		// PENDING: set cursor: move; on img?
 		var $this = $(this);
 		var reader = new FileReader();
 
 		reader.onload = function (event) {
 			var image = new Image();
 			image.onload = function () {
-				//copy img to mouse position
+				// copy img to mouse position
 				var sel = window.getSelection();
 				var range = getRangeFromPoint(caretX, caretY);
 				if (range !== null) {
 					range.insertNode(this);
 
-					//set cursor after <img/>
+					// set cursor after <img/>
 					range.collapse(false);
 					sel.removeAllRanges();
 					sel.addRange(range);
 				} else if ($this.is(":focus")) {
 
-					//add <img/> after selection
+					// add <img/> after selection
 					range = sel.getRangeAt(0);
 					range.collapse(false);
 					range.insertNode(this);
 
-					//set cursor after <img/>
+					// set cursor after <img/>
 					range.collapse(false);
 					sel.removeAllRanges();
 					sel.addRange(range);
@@ -158,7 +164,7 @@
 				}
 			};
 			image.onerror = function () {
-				//PENDING: more verbose error message?
+				// PENDING: more verbose error message?
 				alert("Not an image");
 			};
 			image.src = event.target.result;
@@ -166,7 +172,7 @@
 		reader.readAsDataURL(file);
 	};
 
-	//modified from http://stackoverflow.com/a/12244703/806777
+	// modified from http://stackoverflow.com/a/12244703/806777
 	var selectAllText = function () {
 		if (document.body.createTextRange) {
 			var range = document.body.createTextRange();
@@ -277,7 +283,7 @@
 						placeholder = settings.placeholder.call(this);
 					}
 					if (!placeholder) {
-						//check attributes
+						// check attributes
 						placeholder = $this.attr("placeholder") || $this.data().placeholder;
 					}
 					$this
@@ -298,7 +304,7 @@
 							$(this).trigger("input");
 						});
 					if (placeholder) {
-						$this.attr({"data-placeholder": placeholder}).addClass("toTextarea-placeholder");
+						$this.attr({ "data-placeholder": placeholder }).addClass("toTextarea-placeholder");
 					}
 					if (singleLine) {
 						$this
@@ -309,8 +315,8 @@
 									return false;
 								}
 							});
-						//if (!allowHTML || pastePlainText) {
-						//PENDING: not allowing pasting html for now.
+						// if (!allowHTML || pastePlainText) {
+						// PENDING: not allowing pasting html for now.
 						$this
 							.on("paste.toTextarea", function (e) {
 								if (!$(this).data().disabled) {
@@ -340,7 +346,7 @@
 									return false;
 								}
 							});
-						/*} else {
+						/* } else {
 						 //PENDING: this is giving me problems, For now if they allow html let it go to multiple lines.
 						 //PENDING: maybe check after paste and remove new lines? a little jumpy but probably the only way to do it
 
@@ -435,7 +441,7 @@
 					if (!allowHTML) {
 						$this.on("keydown.toTextarea", function (e) {
 							if (!$(this).data().disabled && e.ctrlKey) {
-								if (e.which === 66 || e.which === 73 || e.which === 85) {
+								if (e.which === 66 || e.which === 73 || e.which === 75 || e.which === 85) {
 									e.preventDefault();
 									return false;
 								}
