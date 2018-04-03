@@ -52,6 +52,10 @@
 
 	// modified from http://stackoverflow.com/a/20398132/806777
 	var insertTextAtCursor = function (text, x, y) {
+		if (typeof text !== "string") {
+			return;
+		}
+
 		var sel = window.getSelection();
 
 		// fix a bug that won't create a new line if there isn't a new line at the end of the text
